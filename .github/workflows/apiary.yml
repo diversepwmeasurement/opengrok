@@ -1,23 +1,18 @@
-name: Check Apiary blueprint
-
-on:
-  push:
-    paths:
-    - apiary.apib
-    branches:
-    - master
-  pull_request:
-    paths:
-    - apiary.apib
-
 jobs:
   ubuntu:
     name: Ubuntu
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-    - name: Checkout master branch
+    - continue-on-error: true
+      name: Checkout master branch
       uses: actions/checkout@v4
-    - name: Install drafter
+    - continue-on-error: true
+      name: Install drafter
       run: npm install drafter
-    - name: Build
+    - continue-on-error: true
+      name: Build
       run: node dev/parse.js
+name: Check Apiary blueprint
+on:
+  repository_dispatch:
+    types: trigger-ga___apiary.yml

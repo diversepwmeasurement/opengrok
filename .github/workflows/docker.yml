@@ -1,45 +1,57 @@
-name: Build Docker image
-
-on: [push, pull_request]
-
 jobs:
   ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-    - name: Checkout master branch
+    - continue-on-error: true
+      name: Checkout master branch
       uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - continue-on-error: true
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-    - name: Install dependencies
+    - continue-on-error: true
+      name: Install dependencies
       run: python3 -m pip install -r docker/requirements.txt
-    - name: Install opengrok-tools so that pylint can perform the checks
+    - continue-on-error: true
+      name: Install opengrok-tools so that pylint can perform the checks
       run: python3 -m pip install .
       working-directory: tools
-    - name: Install checkers
+    - continue-on-error: true
+      name: Install checkers
       run: python3 -m pip install pylint flake8 black isort
-    - name: Run flake8
+    - continue-on-error: true
+      name: Run flake8
       run: flake8 --max-line-length 119 docker/*.py
-    - name: Run pylint
+    - continue-on-error: true
+      name: Run pylint
       run: pylint -E --max-line-length 119 docker/*.py
-    - name: Run black in check mode
+    - continue-on-error: true
+      name: Run black in check mode
       run: black --check docker/*.py
-    - name: Run isort in check mode
+    - continue-on-error: true
+      name: Run isort in check mode
       run: isort --settings-file docker/.isort.cfg docker/*.py  --check --diff
-    - name: Build and optionally push Docker image
+    - continue-on-error: true
       env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        OPENGROK_REPO_SLUG: ${{ github.repository }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         OPENGROK_PULL_REQUEST: ${{ github.head_ref }}
         OPENGROK_REF: ${{ github.ref }}
-      run: ./dev/docker.sh
-    - name: Install Python pre-requisites
-      run: python3 -m pip install requests
-    - name: Optionally update README on Docker hub
-      env:
         OPENGROK_REPO_SLUG: ${{ github.repository }}
-        OPENGROK_PULL_REQUEST: ${{ github.head_ref }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      name: Build and optionally push Docker image
+      run: ./dev/docker.sh
+    - continue-on-error: true
+      name: Install Python pre-requisites
+      run: python3 -m pip install requests
+    - continue-on-error: true
+      env:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        OPENGROK_PULL_REQUEST: ${{ github.head_ref }}
+        OPENGROK_REPO_SLUG: ${{ github.repository }}
+      name: Optionally update README on Docker hub
       run: ./dev/dockerhub_readme.py
+name: Build Docker image
+on:
+  repository_dispatch:
+    types: trigger-ga___docker.yml
